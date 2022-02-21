@@ -48,6 +48,9 @@ def download(filename):
 
 
 def parse_json(data):
+    os.remove("file.json")
+    os.remove("file.db")
+    os.remove("file.csv")
     global additional_data, count_data, format_data, table_name, input_data
     for obj in data:
         input_data = (obj.get("input_data"))
@@ -70,17 +73,20 @@ VALUES
     create_execute(string)
     create_execute(string_for_insert)
     time.sleep(5)
-    sqlite_connection = sqlite3.connect('sqlite_python.db')
+    sqlite_connection = sqlite3.connect('file.db')
+
     df = pandas.read_sql_query(f"SELECT * FROM {table_name}", sqlite_connection)
+    df = df.iloc[0:, 1:]
     a = pd.DataFrame(df)
-    print(a)
     a.to_csv("file.csv")
+    a.to_json("file.json")
+    sqlite_connection.close()
     return string + "\n\n" + string_for_insert
 
 
 def create_execute(query):
     try:
-        sqlite_connection = sqlite3.connect('sqlite_python.db')
+        sqlite_connection = sqlite3.connect('file.db')
         cursor = sqlite_connection.cursor()
         print("Connect successful")
         cursor.execute(query)
@@ -114,7 +120,7 @@ def choose_type(title):
 
 def generate_string_for_insert(counter, list_data):
     query = ""
-    for i in range(1, counter + 1):
+    for i in range(counter):
         query += f"({i}, "
         for name in list_data.keys():
             query += f"'{choose_fake(list_data.get(name))}', "
